@@ -18,12 +18,32 @@ const btnNext = document.getElementById('btn-next');
 const pageInfo = document.getElementById('page-info');
 
 // State
+// Configuração do Painel de Auditoria (Power Automate)
+// Cole a URL do seu gatilho HTTP do Power Automate abaixo:
+const WEBHOOK_URL = 'https://default975003b969304fb3bbe11f2ec3c14c.d0.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/70e9f7582b5b48e0b1f3a8cf386bc292/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=veoCUlGOUWDCkl65LTdf9isrrosnqeC4eTU5osvVeUE'; 
+
 let originalPdfBytes = null;
+let currentFileName = ''; // Guardará o nome do arquivo original
+let currentUserEmail = 'Desconhecido';
+let currentUserName = 'Fora do Teams (Navegador)';
+
 let pdfDoc = null; // pdf.js doc
 let currentPageNum = 1;
 let currentRenderTask = null;
 let pdfScale = 1.5; // Render scale
 let currentViewport = null;
+
+// Tenta inicializar o SDK do Teams para capturar a identidade
+if (typeof microsoftTeams !== 'undefined') {
+    microsoftTeams.app.initialize().then(() => {
+        microsoftTeams.app.getContext().then((context) => {
+            if (context && context.user) {
+                currentUserName = context.user.userPrincipalName || context.user.displayName || 'Usuário Teams';
+                currentUserEmail = context.user.userPrincipalName || 'sem-email@aedas';
+            }
+        }).catch(e => console.warn("Não foi possível obter o contexto de usuário."));
+    }).catch(e => console.warn("Rodando fora do Teams. Identidade anônima assumida."));
+}
 
 // redactions[pageNumber] = [ { x, y, width, height } ... relative to unscaled PDF points or viewport? ]
 // Let's store them relative to the viewport at current scale, then convert during export, 
@@ -91,6 +111,7 @@ async function handleFile(file) {
     showLoading('Carregando documento...');
 
     try {
+        currentFileName = file.name;
         const arrayBuffer = await file.arrayBuffer();
         originalPdfBytes = new Uint8Array(arrayBuffer);
 
@@ -343,6 +364,32 @@ btnExport.addEventListener('click', async () => {
                 });
             }
         }
+        
+        // --- Registro no Painel de Auditoria (Power Automate) ---
+        if (WEBHOOK_URL && WEBHOOK_URL.trim() !== '') {
+            let totalRedactions = 0;
+            for (const pageNumStr in redactions) {
+                totalRedactions += redactions[pageNumStr].length;
+            }
+            
+            try {
+                fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        usuarioResponsavel: currentUserName,
+                        emailUsuario: currentUserEmail,
+                        nomeDoArquivo: currentFileName,
+                        numeroDePaginas: pages.length,
+                        quantidadeDeTarjas: totalRedactions,
+                        dataHora: new Date().toISOString()
+                    })
+                }).catch(e => console.warn("Erro ao registrar auditoria (rede):", e));
+            } catch (e) {
+                console.warn("Erro ao registrar auditoria (código):", e);
+            }
+        }
+        // --------------------------------------------------------
         
         // Save and trigger download
         const modifiedPdfBytes = await pdfDocMod.save();
