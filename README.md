@@ -17,6 +17,16 @@ O **TarjarDoc MRD** foi criado para preencher essa lacuna institucional. Ele per
 - **Auditoria Serverless:** Integração nativa com o ecossistema Microsoft 365. Utiliza um Webhook do **Power Automate** para salvar um log de uso (Nome do arquivo, Qtd de páginas, Qtd de Tarjas, Data/Hora) diretamente em uma lista do Microsoft Lists/SharePoint.
 - **Integração com Microsoft Teams:** O software foi arquitetado para ser embarcado (via manifest) como um aplicativo pessoal dentro do MS Teams da corporação, capturando via SDK (SSO invisível) a identidade do usuário para o log de auditoria.
 
+## 🖱️ Como Usar (Passo a Passo)
+
+1. **Acessar a Ferramenta:** Pelo Microsoft Teams (aba "Feito para sua organização") ou abrindo o arquivo `index.html` no navegador.
+2. **Carregar o Arquivo:** Clique em **"Selecionar PDF"** ou arraste o PDF assinado para a área pontilhada na tela inicial.
+3. **Aplicar a Tarja:**
+   - Com o documento aberto, posicione o cursor sobre a informação sensível.
+   - Clique, segure e arraste o mouse para desenhar uma caixa preta cobrindo o texto.
+   - *(Para excluir uma tarja desenhada errada, clique no 'X' vermelho no canto dela).*
+4. **Exportar:** Após cobrir todas as informações sigilosas, clique no botão azul **"Exportar PDF Tarjado"** no canto superior direito. O novo documento limpo e achatado será baixado automaticamente no seu computador.
+
 ## 🛠️ Tecnologias Utilizadas
 
 - **HTML5, CSS3, JavaScript (Vanilla)** - Sem necessidade de Node.js ou empacotadores (bundlers).
