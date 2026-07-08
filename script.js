@@ -399,7 +399,13 @@ btnExport.addEventListener('click', async () => {
         
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'documento_tarjado.pdf';
+        
+        let exportFileName = 'documento_tarjado.pdf';
+        if (currentFileName) {
+            exportFileName = currentFileName.replace(/\.pdf$/i, '_tarjado.pdf');
+        }
+        a.download = exportFileName;
+        
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
